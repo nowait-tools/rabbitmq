@@ -60,6 +60,7 @@ try:
 except ImportError:
     HAS_BOTO = False
 
+
 def todict(obj, classkey=None):
     if isinstance(obj, dict):
         data = {}
@@ -75,13 +76,14 @@ def todict(obj, classkey=None):
         # debugging. If it's useful later I'll look into it.
         if not isinstance(obj, boto.ec2.blockdevicemapping.BlockDeviceType):
             data = dict([(key, todict(value, classkey))
-                for key, value in obj.__dict__.iteritems()
-                if not callable(value) and not key.startswith('_')])
+                        for key, value in obj.__dict__.iteritems()
+                        if not callable(value) and not key.startswith('_')])
             if classkey is not None and hasattr(obj, "__class__"):
                 data[classkey] = obj.__class__.__name__
             return data
     else:
         return obj
+
 
 def get_all_ec2_regions(module):
     try:
@@ -89,6 +91,7 @@ def get_all_ec2_regions(module):
     except Exception, e:
         module.fail_json('Boto authentication issue: %s' % e)
     return regions
+
 
 # Connect to ec2 region
 def connect_to_region(region, module):
@@ -99,6 +102,7 @@ def connect_to_region(region, module):
         return conn
     except Exception, e:
         module.fail_json(msg='error connecting to region %s: %s' % (region, e))
+
 
 def main():
     module = AnsibleModule(
