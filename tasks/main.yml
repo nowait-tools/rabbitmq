@@ -53,6 +53,12 @@
     state: present
   when: ansible_os_family == 'Debian' and not use_erlang_solutions_repo
 
+- name: install packages (RedHat/CentOS default repo)
+  yum:
+    name: "rabbitmq-server"
+    state: present
+  when: ansible_os_family == 'RedHat'
+
 - name: shutdown rabbitmq to change cookie and conf file
   service:
     name: rabbitmq-server
