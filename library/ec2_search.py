@@ -88,7 +88,7 @@ def todict(obj, classkey=None):
 def get_all_ec2_regions(module):
     try:
         regions = boto.ec2.regions()
-    except Exception, e:
+    except Exception as e:
         module.fail_json('Boto authentication issue: %s' % e)
     return regions
 
@@ -97,10 +97,10 @@ def get_all_ec2_regions(module):
 def connect_to_region(region, module):
     try:
         conn = boto.ec2.connect_to_region(region)
-        if conn == None:
+        if conn is None:
             raise Exception("Unable to get connection from boto")
         return conn
-    except Exception, e:
+    except Exception as e:
         module.fail_json(msg='error connecting to region %s: %s' % (region, e))
 
 
@@ -139,12 +139,12 @@ def main():
             if module.params.get('lookup') == 'tags':
                 for instance in conn.get_only_instances():
                     nameTag = instance.tags.get(ec2_key)
-                    if nameTag != None and nameTag.startswith(ec2_value):
-                        if instance.private_ip_address != None:
+                    if nameTag is not None and nameTag.startswith(ec2_value):
+                        if instance.private_ip_address is not None:
                             instance.hostname = 'ip-' + instance.private_ip_address.replace('.', '-')
                         if instance._state.name not in module.params.get('ignore_state'):
                             server_info.append(todict(instance))
-        except Exception, e:
+        except Exception as e:
             module.fail_json(msg='error getting instances from: %s %s' % (region, e))
 
     ec2_facts_result = dict(changed=True, info=server_info)
