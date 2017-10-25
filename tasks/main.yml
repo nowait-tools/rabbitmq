@@ -47,17 +47,11 @@
     - esl-erlang={{ erlang_version }}
     - rabbitmq-server={{ rabbitmq_version }}
 
-- name: install packages (Ubuntu default repo is used)
-  apt:
+- name: install packages (when default repo is used)
+  package:
     name: "rabbitmq-server"
     state: present
-  when: ansible_os_family == 'Debian' and not use_erlang_solutions_repo
-
-- name: install packages (RedHat/CentOS default repo)
-  yum:
-    name: "rabbitmq-server"
-    state: present
-  when: ansible_os_family == 'RedHat'
+  when: not use_erlang_solutions_repo
 
 - name: shutdown rabbitmq to change cookie and conf file
   service:
