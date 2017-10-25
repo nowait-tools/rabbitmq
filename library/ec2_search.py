@@ -59,7 +59,7 @@ try:
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
-
+import socket
 
 def todict(obj, classkey=None):
     if isinstance(obj, dict):
@@ -142,7 +142,7 @@ def main():
                     if nameTag is not None and nameTag.startswith(ec2_value):
                         if instance.private_ip_address is not None:
                             instance.hostname = 'ip-' + instance.private_ip_address.replace('.', '-')
-                        if instance._state.name not in module.params.get('ignore_state'):
+                        if instance._state.name not in module.params.get('ignore_state') and instance.hostname != socket.gethostname().split('.')[0]:
                             server_info.append(todict(instance))
         except Exception as e:
             module.fail_json(msg='error getting instances from: %s %s' % (region, e))
