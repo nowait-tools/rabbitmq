@@ -14,6 +14,9 @@
     key: "{{ rabbitmq_ec2_tag_key }}"
     value: "{{ rabbitmq_ec2_tag_value }}"
     region: "{{ rabbitmq_ec2_region }}"
+    # Security best practices recommend applying a IAM instacnce role rather than
+    # a user. Boto will pick up the credentials from the role. Uncomment the following
+    # only if all you have is a user supplied access/secret key pair
   # environment:
   #   AWS_ACCESS_KEY_ID: "{{ app_settings['rabbitmq']['aws_access_key_id'] }}"
   #   AWS_SECRET_ACCESS_KEY: "{{ app_settings['rabbitmq']['aws_secret_access_key'] }}"
