@@ -14,9 +14,9 @@
     key: "{{ rabbitmq_ec2_tag_key }}"
     value: "{{ rabbitmq_ec2_tag_value }}"
     region: "{{ rabbitmq_ec2_region }}"
-  environment:
-    AWS_ACCESS_KEY_ID: "{{ app_settings['rabbitmq']['aws_access_key_id'] }}"
-    AWS_SECRET_ACCESS_KEY: "{{ app_settings['rabbitmq']['aws_secret_access_key'] }}"
+  # environment:
+  #   AWS_ACCESS_KEY_ID: "{{ app_settings['rabbitmq']['aws_access_key_id'] }}"
+  #   AWS_SECRET_ACCESS_KEY: "{{ app_settings['rabbitmq']['aws_secret_access_key'] }}"
   register: nodes
 
 - name: start rabbitmq-server (clustering)
