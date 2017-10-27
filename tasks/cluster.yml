@@ -14,6 +14,7 @@
     key: "{{ rabbitmq_ec2_tag_key }}"
     value: "{{ rabbitmq_ec2_tag_value }}"
     region: "{{ rabbitmq_ec2_region }}"
+    write_hosts_entries: "{{ rabbitmq_write_hosts_entries }}"
     # Security best practices recommend applying a IAM instacnce role rather than
     # a user. Boto will pick up the credentials from the role. Uncomment the following
     # only if all you have is a user supplied access/secret key pair

@@ -112,6 +112,7 @@ def main():
             lookup = dict(default='tags'),
             ignore_state = dict(default='terminated'),
             region = dict(default='all'),
+            write_hosts_entries=dict(default=False)
         )
     )
 
@@ -120,8 +121,12 @@ def main():
 
     ec2_key = module.params.get('key')
     ec2_value = module.params.get('value')
+    write_hosts_entries = module.params.get('write_hosts_entries')
 
     server_info = list()
+    if write_hosts_entries:
+        hosts_fp = open("/etc/hosts", "r+")
+        hosts_lines = hosts_fp.read()
 
     all_regions = [r.name for r in get_all_ec2_regions(module)]
     passed_region = module.params.get('region')
@@ -144,8 +149,14 @@ def main():
                             instance.hostname = 'ip-' + instance.private_ip_address.replace('.', '-')
                         if instance._state.name not in module.params.get('ignore_state') and instance.hostname != socket.gethostname().split('.')[0]:
                             server_info.append(todict(instance))
+                        if write_hosts_entries:
+                            if instance.private_ip_address not in filter((lambda line: re.match('^[0-9]', line)), map((lambda line: re.split('\s+', line)[0]), hosts_lines.splitlines())):
+                                hosts_fp.write("%s %s\n" % (instance.private_ip_address, instance.hostname))
         except Exception as e:
             module.fail_json(msg='error getting instances from: %s %s' % (region, e))
+
+    if write_hosts_entries:
+        hosts_fp.close()
 
     ec2_facts_result = dict(changed=True, info=server_info)
 
