@@ -89,3 +89,9 @@
     tags: "{{ rabbitmq_default_user_tags }}"
     state: "{{ rabbitmq_user_state }}"
   when: make_rabbitmq_user
+
+- name: Enable plugins
+  rabbitmq_plugin:
+    names: "{{ rabbitmq_plugins }}"
+    state: enabled
+  when: rabbitmq_plugins is defined
