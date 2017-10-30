@@ -147,11 +147,11 @@ def main():
                     if nameTag is not None and nameTag.startswith(ec2_value):
                         if instance.private_ip_address is not None:
                             instance.hostname = 'ip-' + instance.private_ip_address.replace('.', '-')
+                            if write_hosts_entries:
+                                if instance.private_ip_address not in filter((lambda line: re.match('^[0-9]', line)), map((lambda line: re.split('\s+', line)[0]), hosts_lines.splitlines())):
+                                    hosts_fp.write("%s %s\n" % (instance.private_ip_address, instance.hostname))
                         if instance._state.name not in module.params.get('ignore_state') and instance.hostname != socket.gethostname().split('.')[0]:
                             server_info.append(todict(instance))
-                        if write_hosts_entries:
-                            if instance.private_ip_address not in filter((lambda line: re.match('^[0-9]', line)), map((lambda line: re.split('\s+', line)[0]), hosts_lines.splitlines())):
-                                hosts_fp.write("%s %s\n" % (instance.private_ip_address, instance.hostname))
         except Exception as e:
             module.fail_json(msg='error getting instances from: %s %s' % (region, e))
 
