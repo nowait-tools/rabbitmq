@@ -74,8 +74,10 @@
 
 - name: enable management plugin
   rabbitmq_plugin:
-     name: rabbitmq_management
-     state: enabled
+    name: rabbitmq_management
+    new_only: yes
+    state: enabled
+  notify: restart rabbitmq-server
   when: rabbitmq_manage
 
 - name: Setup rabbitmq user with admin access
@@ -93,5 +95,7 @@
 - name: Enable plugins
   rabbitmq_plugin:
     names: "{{ rabbitmq_plugins }}"
+    new_only: yes
     state: enabled
+  notify: restart rabbitmq-server
   when: rabbitmq_plugins is defined
