@@ -59,6 +59,7 @@ try:
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
+import socket
 
 def todict(obj, classkey=None):
     if isinstance(obj, dict):
@@ -75,30 +76,33 @@ def todict(obj, classkey=None):
         # debugging. If it's useful later I'll look into it.
         if not isinstance(obj, boto.ec2.blockdevicemapping.BlockDeviceType):
             data = dict([(key, todict(value, classkey))
-                for key, value in obj.__dict__.iteritems()
-                if not callable(value) and not key.startswith('_')])
+                        for key, value in obj.__dict__.iteritems()
+                        if not callable(value) and not key.startswith('_')])
             if classkey is not None and hasattr(obj, "__class__"):
                 data[classkey] = obj.__class__.__name__
             return data
     else:
         return obj
 
+
 def get_all_ec2_regions(module):
     try:
         regions = boto.ec2.regions()
-    except Exception, e:
+    except Exception as e:
         module.fail_json('Boto authentication issue: %s' % e)
     return regions
+
 
 # Connect to ec2 region
 def connect_to_region(region, module):
     try:
         conn = boto.ec2.connect_to_region(region)
-        if conn == None:
+        if conn is None:
             raise Exception("Unable to get connection from boto")
         return conn
-    except Exception, e:
+    except Exception as e:
         module.fail_json(msg='error connecting to region %s: %s' % (region, e))
+
 
 def main():
     module = AnsibleModule(
@@ -108,6 +112,7 @@ def main():
             lookup = dict(default='tags'),
             ignore_state = dict(default='terminated'),
             region = dict(default='all'),
+            write_hosts_entries=dict(default=False)
         )
     )
 
@@ -116,8 +121,12 @@ def main():
 
     ec2_key = module.params.get('key')
     ec2_value = module.params.get('value')
+    write_hosts_entries = module.params.get('write_hosts_entries')
 
     server_info = list()
+    if write_hosts_entries:
+        hosts_fp = open("/etc/hosts", "r+")
+        hosts_lines = hosts_fp.read()
 
     all_regions = [r.name for r in get_all_ec2_regions(module)]
     passed_region = module.params.get('region')
@@ -135,13 +144,19 @@ def main():
             if module.params.get('lookup') == 'tags':
                 for instance in conn.get_only_instances():
                     nameTag = instance.tags.get(ec2_key)
-                    if nameTag != None and nameTag.startswith(ec2_value):
-                        if instance.private_ip_address != None:
+                    if nameTag is not None and nameTag.startswith(ec2_value):
+                        if instance.private_ip_address is not None:
                             instance.hostname = 'ip-' + instance.private_ip_address.replace('.', '-')
-                        if instance._state.name not in module.params.get('ignore_state'):
+                            if write_hosts_entries:
+                                if instance.private_ip_address not in filter((lambda line: re.match('^[0-9]', line)), map((lambda line: re.split('\s+', line)[0]), hosts_lines.splitlines())):
+                                    hosts_fp.write("%s %s\n" % (instance.private_ip_address, instance.hostname))
+                        if instance._state.name not in module.params.get('ignore_state') and instance.hostname != socket.gethostname().split('.')[0]:
                             server_info.append(todict(instance))
-        except Exception, e:
+        except Exception as e:
             module.fail_json(msg='error getting instances from: %s %s' % (region, e))
+
+    if write_hosts_entries:
+        hosts_fp.close()
 
     ec2_facts_result = dict(changed=True, info=server_info)
 

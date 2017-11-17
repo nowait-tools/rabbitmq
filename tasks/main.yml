@@ -47,11 +47,11 @@
     - esl-erlang={{ erlang_version }}
     - rabbitmq-server={{ rabbitmq_version }}
 
-- name: install packages (Ubuntu default repo is used)
-  apt:
+- name: install packages (when default repo is used)
+  package:
     name: "rabbitmq-server"
     state: present
-  when: ansible_os_family == 'Debian' and not use_erlang_solutions_repo
+  when: not use_erlang_solutions_repo
 
 - name: shutdown rabbitmq to change cookie and conf file
   service:
@@ -74,8 +74,10 @@
 
 - name: enable management plugin
   rabbitmq_plugin:
-     name: rabbitmq_management
-     state: enabled
+    name: rabbitmq_management
+    new_only: yes
+    state: enabled
+  notify: restart rabbitmq-server
   when: rabbitmq_manage
 
 - name: Setup rabbitmq user with admin access
@@ -89,3 +91,11 @@
     tags: "{{ rabbitmq_default_user_tags }}"
     state: "{{ rabbitmq_user_state }}"
   when: make_rabbitmq_user
+
+- name: Enable plugins
+  rabbitmq_plugin:
+    names: "{{ rabbitmq_plugins }}"
+    new_only: yes
+    state: enabled
+  notify: restart rabbitmq-server
+  when: rabbitmq_plugins is defined

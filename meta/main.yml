@@ -94,6 +94,9 @@ galaxy_info:
     - name: Debian
       versions:
         - all
+    - name: CentOS
+      versions:
+        - 6
   #
   # Below are all categories currently available. Just as with
   # the platforms above, uncomment those that apply to your role.
